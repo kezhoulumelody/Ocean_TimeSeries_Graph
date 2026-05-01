@@ -151,6 +151,51 @@ python NXRO_train_out_of_sample.py \
 # Other models: --model {linear, res, graph_pyg, pure_neural_ode, pure_transformer}
 ```
 
+### CESM transfer learning
+
+CESM2-LENS climate-mode NetCDF files should be placed under:
+
+```bash
+data/CESM2-LENS_climate_mode_data/
+```
+
+The loader automatically discovers files named like `*.climate-modes.*.nc`,
+renames CESM2 variables to NXRO names (`ENSO -> Nino34`, `d20 -> WWV`,
+`ALT3 -> ATL3`), and converts `d20` from centimeters to meters before training.
+
+To run CESM2-LENS transfer learning with the NXRO graph model and learned graph
+edges:
+
+```bash
+python NXRO_train_out_of_sample.py \
+    --model graph \
+    --nc_path data/XRO_indices_oras5.nc \
+    --extra_train_nc cesm2 \
+    --two_stage \
+    --graph_learned \
+    --graph_l1 1e-4 \
+    --train_start 1979-01 \
+    --train_end 2001-12 \
+    --test_start 2002-01 \
+    --test_end 2022-12 \
+    --epochs 2000 \
+    --batch_size 128 \
+    --lr 1e-3
+```
+
+Important flags:
+
+- `--model graph`: trains the built-in NXRO graph model.
+- `--nc_path data/XRO_indices_oras5.nc`: uses ORAS5 as the target observation dataset.
+- `--extra_train_nc cesm2`: auto-discovers CESM2-LENS files in `data/CESM2-LENS_climate_mode_data/`.
+- `--two_stage`: first pretrains on CESM2-LENS, then fine-tunes on ORAS5.
+- `--graph_learned`: learns graph edge weights instead of using only a fixed graph prior.
+- `--graph_l1 1e-4`: adds an L1 sparsity penalty so the learned graph remains selective and interpretable.
+- `--train_start`, `--train_end`, `--test_start`, `--test_end`: define the train and out-of-sample test periods.
+
+Without `--two_stage`, `--extra_train_nc cesm2` concatenates CESM2-LENS with
+the ORAS5 training split instead of doing explicit pretraining and fine-tuning.
+
 ### Reproducing Paper Results
 
 ```bash
