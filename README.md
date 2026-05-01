@@ -57,6 +57,83 @@ tex/rebuttal/          # Rebuttal responses and figures
 
 ## Quick Start
 
+### Libraries
+
+The current working environment is organized under:
+
+```bash
+/data/kezhoulumelody/conda_envs/melody_NXRO
+```
+
+A compatibility symlink is also kept at the original install path:
+
+```bash
+/data/kezhoulumelody/melody_NXRO
+```
+
+The conda history for that environment shows the following setup sequence.
+If you are rebuilding the environment, adjust the prefix path as needed.
+
+**Create a dedicated conda environment:**
+
+```bash
+# Created on 2026-04-30 from /data/kezhoulumelody/miniconda3
+conda create --prefix /data/kezhoulumelody/melody_NXRO python=3.11 -y
+conda activate /data/kezhoulumelody/melody_NXRO
+
+# Or use named environment
+conda create -n nxro python=3.11 -y
+conda activate nxro
+```
+
+**Install core dependencies:**
+
+```bash
+# PyTorch
+conda install pytorch torchvision torchaudio cpuonly -c pytorch -y
+
+# The existing melody_NXRO env was later updated by this solve, which replaced
+# the CPU PyTorch build with CUDA 13.0 packages:
+conda install pytorch torchvision torchaudio cpuonly -c conda-forge -y
+
+# Scientific stack
+conda install numpy pandas xarray matplotlib tqdm scikit-learn -y
+conda install netcdf4 h5netcdf cftime -y
+
+# Notebook support
+conda install jupyter ipykernel -y
+
+# Climate forecast metrics and diagnostics
+pip install climpred nc-time-axis xskillscore properscoring statsmodels
+```
+
+**For a cleaner GPU install (optional):**
+
+The current `melody_NXRO` environment resolves to `torch==2.10.0`,
+`torchvision==0.25.0`, and `torchaudio==2.10.0` with CUDA 13.0 packages.
+For a fresh GPU environment, prefer an explicit PyTorch CUDA command over
+mixing `cpuonly` with CUDA packages:
+
+```bash
+conda install pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia -y
+```
+
+**Graph neural network library (optional):**
+
+`torch-geometric` is only needed for the `graph_pyg` model. It was not present
+in the checked `/data/kezhoulumelody/melody_NXRO` environment.
+
+```bash
+pip install torch-geometric
+```
+
+**Verify installation:**
+
+```bash
+python -c "import torch, xarray, climpred, netCDF4; print(torch.__version__); print('Core packages installed')"
+python -c "import torch_geometric; print('torch-geometric installed')"  # optional graph_pyg check
+```
+
 ### Training
 
 ```bash

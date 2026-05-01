@@ -12,8 +12,8 @@ from .models import (
     NXROMemoryResModel,
     NXROMemoryAttentionModel,
     NXROMemoryGraphModel,
-    NXROMemoryDecayModel,
-    NXROMemoryGRUModel,
+    # NXROMemoryDecayModel,  # FIXME: Model not implemented
+    # NXROMemoryGRUModel,    # FIXME: Model not implemented
     NXROROModel,
     NXRORODiagModel,
     NXROResModel,
@@ -673,120 +673,122 @@ def train_nxro_memory_graph(
     return model, var_order, best_rmse, history
 
 
-def train_nxro_memory_decay(
-    nc_path: str = 'data/XRO_indices_oras5.nc',
-    train_start: str = '1979-01',
-    train_end: str = '2022-12',
-    test_start: str = '2023-01',
-    test_end: Optional[str] = None,
-    n_epochs: int = 2000,
-    batch_size: int = 128,
-    lr: float = 1e-3,
-    weight_decay: float = 1e-4,
-    memory_depth: int = 3,
-    k_max: int = 2,
-    device: str = 'cpu',
-    rollout_k: int = 1,
-    extra_train_nc_paths=None,
-    L_basis_init: Optional[torch.Tensor] = None,
-    pretrained_state_dict: Optional[dict] = None,
-    exclude_vars: Optional[list] = None,
-    include_only_vars: Optional[list] = None,
-    freeze_instantaneous: bool = False,
-    early_stop_patience: Optional[int] = 200,
-    early_stop_min_delta: float = 1e-4,
-):
-    dl_train, dl_test, var_order = get_dataloaders(
-        nc_path=nc_path,
-        train_slice=(train_start, train_end),
-        test_slice=(test_start, test_end),
-        batch_size=batch_size,
-        rollout_k=rollout_k,
-        memory_depth=memory_depth,
-        extra_train_nc_paths=extra_train_nc_paths,
-        exclude_vars=exclude_vars,
-        include_only_vars=include_only_vars,
-    )
+# FIXME: NXROMemoryDecayModel not implemented
+# def train_nxro_memory_decay(
+#     nc_path: str = 'data/XRO_indices_oras5.nc',
+#     train_start: str = '1979-01',
+#     train_end: str = '2022-12',
+#     test_start: str = '2023-01',
+#     test_end: Optional[str] = None,
+#     n_epochs: int = 2000,
+#     batch_size: int = 128,
+#     lr: float = 1e-3,
+#     weight_decay: float = 1e-4,
+#     memory_depth: int = 3,
+#     k_max: int = 2,
+#     device: str = 'cpu',
+#     rollout_k: int = 1,
+#     extra_train_nc_paths=None,
+#     L_basis_init: Optional[torch.Tensor] = None,
+#     pretrained_state_dict: Optional[dict] = None,
+#     exclude_vars: Optional[list] = None,
+#     include_only_vars: Optional[list] = None,
+#     freeze_instantaneous: bool = False,
+#     early_stop_patience: Optional[int] = 200,
+#     early_stop_min_delta: float = 1e-4,
+# ):
+#     dl_train, dl_test, var_order = get_dataloaders(
+#         nc_path=nc_path,
+#         train_slice=(train_start, train_end),
+#         test_slice=(test_start, test_end),
+#         batch_size=batch_size,
+#         rollout_k=rollout_k,
+#         memory_depth=memory_depth,
+#         extra_train_nc_paths=extra_train_nc_paths,
+#         exclude_vars=exclude_vars,
+#         include_only_vars=include_only_vars,
+#     )
 
-    n_vars = len(var_order)
-    model = NXROMemoryDecayModel(
-        n_vars=n_vars,
-        memory_depth=memory_depth,
-        k_max=k_max,
-        L_basis_init=L_basis_init,
-        freeze_instantaneous=freeze_instantaneous,
-    ).to(device)
-    if pretrained_state_dict is not None:
-        model.load_state_dict(pretrained_state_dict)
-        print("Loaded pretrained state dict.")
+#     n_vars = len(var_order)
+#     model = NXROMemoryDecayModel(
+#         n_vars=n_vars,
+#         memory_depth=memory_depth,
+#         k_max=k_max,
+#         L_basis_init=L_basis_init,
+#         freeze_instantaneous=freeze_instantaneous,
+#     ).to(device)
+#     if pretrained_state_dict is not None:
+#         model.load_state_dict(pretrained_state_dict)
+#         print("Loaded pretrained state dict.")
 
-    model, best_rmse, history = _train_memory_model(
-        model, dl_train, dl_test, n_epochs=n_epochs, lr=lr,
-        weight_decay=weight_decay, device=device, rollout_k=rollout_k,
-        tag='MemoryDecay',
-        early_stop_patience=early_stop_patience,
-        early_stop_min_delta=early_stop_min_delta,
-    )
-    return model, var_order, best_rmse, history
+#     model, best_rmse, history = _train_memory_model(
+#         model, dl_train, dl_test, n_epochs=n_epochs, lr=lr,
+#         weight_decay=weight_decay, device=device, rollout_k=rollout_k,
+#         tag='MemoryDecay',
+#         early_stop_patience=early_stop_patience,
+#         early_stop_min_delta=early_stop_min_delta,
+#     )
+#     return model, var_order, best_rmse, history
 
 
-def train_nxro_memory_gru(
-    nc_path: str = 'data/XRO_indices_oras5.nc',
-    train_start: str = '1979-01',
-    train_end: str = '2022-12',
-    test_start: str = '2023-01',
-    test_end: Optional[str] = None,
-    n_epochs: int = 2000,
-    batch_size: int = 128,
-    lr: float = 1e-3,
-    weight_decay: float = 1e-4,
-    memory_depth: int = 3,
-    k_max: int = 2,
-    gru_hidden: int = 32,
-    device: str = 'cpu',
-    rollout_k: int = 1,
-    extra_train_nc_paths=None,
-    L_basis_init: Optional[torch.Tensor] = None,
-    pretrained_state_dict: Optional[dict] = None,
-    exclude_vars: Optional[list] = None,
-    include_only_vars: Optional[list] = None,
-    freeze_instantaneous: bool = False,
-    early_stop_patience: Optional[int] = 200,
-    early_stop_min_delta: float = 1e-4,
-):
-    dl_train, dl_test, var_order = get_dataloaders(
-        nc_path=nc_path,
-        train_slice=(train_start, train_end),
-        test_slice=(test_start, test_end),
-        batch_size=batch_size,
-        rollout_k=rollout_k,
-        memory_depth=memory_depth,
-        extra_train_nc_paths=extra_train_nc_paths,
-        exclude_vars=exclude_vars,
-        include_only_vars=include_only_vars,
-    )
+# FIXME: NXROMemoryGRUModel not implemented
+# def train_nxro_memory_gru(
+#     nc_path: str = 'data/XRO_indices_oras5.nc',
+#     train_start: str = '1979-01',
+#     train_end: str = '2022-12',
+#     test_start: str = '2023-01',
+#     test_end: Optional[str] = None,
+#     n_epochs: int = 2000,
+#     batch_size: int = 128,
+#     lr: float = 1e-3,
+#     weight_decay: float = 1e-4,
+#     memory_depth: int = 3,
+#     k_max: int = 2,
+#     gru_hidden: int = 32,
+#     device: str = 'cpu',
+#     rollout_k: int = 1,
+#     extra_train_nc_paths=None,
+#     L_basis_init: Optional[torch.Tensor] = None,
+#     pretrained_state_dict: Optional[dict] = None,
+#     exclude_vars: Optional[list] = None,
+#     include_only_vars: Optional[list] = None,
+#     freeze_instantaneous: bool = False,
+#     early_stop_patience: Optional[int] = 200,
+#     early_stop_min_delta: float = 1e-4,
+# ):
+#     dl_train, dl_test, var_order = get_dataloaders(
+#         nc_path=nc_path,
+#         train_slice=(train_start, train_end),
+#         test_slice=(test_start, test_end),
+#         batch_size=batch_size,
+#         rollout_k=rollout_k,
+#         memory_depth=memory_depth,
+#         extra_train_nc_paths=extra_train_nc_paths,
+#         exclude_vars=exclude_vars,
+#         include_only_vars=include_only_vars,
+#     )
 
-    n_vars = len(var_order)
-    model = NXROMemoryGRUModel(
-        n_vars=n_vars,
-        memory_depth=memory_depth,
-        k_max=k_max,
-        gru_hidden=gru_hidden,
-        L_basis_init=L_basis_init,
-        freeze_instantaneous=freeze_instantaneous,
-    ).to(device)
-    if pretrained_state_dict is not None:
-        model.load_state_dict(pretrained_state_dict)
-        print("Loaded pretrained state dict.")
+#     n_vars = len(var_order)
+#     model = NXROMemoryGRUModel(
+#         n_vars=n_vars,
+#         memory_depth=memory_depth,
+#         k_max=k_max,
+#         gru_hidden=gru_hidden,
+#         L_basis_init=L_basis_init,
+#         freeze_instantaneous=freeze_instantaneous,
+#     ).to(device)
+#     if pretrained_state_dict is not None:
+#         model.load_state_dict(pretrained_state_dict)
+#         print("Loaded pretrained state dict.")
 
-    model, best_rmse, history = _train_memory_model(
-        model, dl_train, dl_test, n_epochs=n_epochs, lr=lr,
-        weight_decay=weight_decay, device=device, rollout_k=rollout_k,
-        tag='MemoryGRU',
-        early_stop_patience=early_stop_patience,
-        early_stop_min_delta=early_stop_min_delta,
-    )
-    return model, var_order, best_rmse, history
+#     model, best_rmse, history = _train_memory_model(
+#         model, dl_train, dl_test, n_epochs=n_epochs, lr=lr,
+#         weight_decay=weight_decay, device=device, rollout_k=rollout_k,
+#         tag='MemoryGRU',
+#         early_stop_patience=early_stop_patience,
+#         early_stop_min_delta=early_stop_min_delta,
+#     )
+#     return model, var_order, best_rmse, history
 
 
 def train_nxro_ro(
